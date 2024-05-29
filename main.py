@@ -1,31 +1,39 @@
 import tkinter as tk
-from tkinter import filedialog, ttk
+import tkinter.ttk as ttk
+from tkinter import filedialog
+from pygubu.widgets.editabletreeview import EditableTreeview
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from PyPDF2 import PdfReader, PdfWriter
+from PIL import Image, ImageTk
 import os
 import traceback
 
-class Application(ttk.Frame):
+class PDFPasswordRemoverApp(ttk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        self.lock_image = None
         self.master = master
         self.pack()
         self.create_widgets()
 
     def create_widgets(self):
-        self.file_list = ttk.Treeview(self)
-        self.file_list["columns"]=("one","two","three","four")
-        self.file_list.column("#0", width=50)
-        self.file_list.column("one", width=100)
-        self.file_list.column("two", width=100)
-        self.file_list.column("three", width=100)
-        self.file_list.column("four", width=100)
-        self.file_list.heading("#0",text="Item")
-        self.file_list.heading("one", text="File name")
-        self.file_list.heading("two", text="Size")
-        self.file_list.heading("three", text="Pages")
-        self.file_list.heading("four", text="Password")
-        self.file_list.pack(side="top")
+        self.lock_image = Image.open("icons8-lock-48.png")  # Replace with the path to your image
+        self.lock_image = self.lock_image.resize((20, 20))  # Resize the image
+        self.lock_image = ImageTk.PhotoImage(self.lock_image)
+
+        self.file_list = EditableTreeview(self)
+        self.file_list["columns"]=("File Name", "Size", "Pages", "Status")
+        self.file_list.column("#0", width=50, anchor="w")
+        self.file_list.column("File Name", width=200, anchor="w")
+        self.file_list.column("Size", width=100, anchor="w")
+        self.file_list.column("Pages", width=100, anchor="w")
+        self.file_list.column("Status", width=100, anchor="w")
+        self.file_list.heading("#0", text=" Item", anchor="w")
+        self.file_list.heading("File Name", text="File name", anchor="w")
+        self.file_list.heading("Size", text="Size", anchor="w")
+        self.file_list.heading("Pages", text="Pages", anchor="w")
+        self.file_list.heading("Status", text="Password", anchor="w")
+        self.file_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.select_button = tk.Button(self)
         self.select_button["text"] = "Select PDF"
@@ -52,9 +60,10 @@ class Application(ttk.Frame):
         dropped_file_path = event.data
         if os.path.isfile(dropped_file_path) and dropped_file_path.endswith('.pdf'):
             self.add_file_to_list(dropped_file_path)
+
     def get_pdf_file(self):
-        pdf_file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
-        if pdf_file_path:
+        pdf_file_paths = filedialog.askopenfilenames(filetypes=[("PDF files", "*.pdf")])
+        for pdf_file_path in pdf_file_paths:
             # Get the item number
             item_number = len(self.file_list.get_children()) + 1
             # Get the file size in KB
@@ -64,12 +73,14 @@ class Application(ttk.Frame):
             # Get the number of pages in the PDF
             pdf_reader = PdfReader(pdf_file_path)
             if pdf_reader.is_encrypted:
-                num_pages = "Unknown"
+                # Add file to the list
+                self.file_list.insert("", "end", text=item_number, image=self.lock_image,
+                                      values=(file_name, f"{file_size:.0f} KB", "##", ""))
             else:
                 num_pages = len(pdf_reader.pages)
-            # Add file to the list
-            self.file_list.insert("", "end", text=item_number,
-                                  values=(file_name, f"{file_size:.2f} KB", num_pages, ""))
+                # Add file to the list
+                self.file_list.insert("", "end", text=item_number,
+                                      values=(file_name, f"{file_size:.0f} KB", num_pages, ""))
 
     def show_password_entry(self, event):
         # Create an Entry widget for password input
@@ -109,5 +120,5 @@ class Application(ttk.Frame):
                     print("Incorrect password")
 
 root = TkinterDnD.Tk()
-app = Application(master=root)
+app = PDFPasswordRemoverApp(master=root)
 app.mainloop()
