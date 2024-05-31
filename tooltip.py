@@ -1,9 +1,10 @@
 import tkinter as tk
 
 class ToolTip:
-    def __init__(self, widget):
+    def __init__(self, widget, locked_status):
         self.widget = widget
         self.tip_window = None
+        self.locked_status = locked_status
 
     def show_tip(self, tip_text, item_id):
         "Display text in a tooltip window"
@@ -27,16 +28,16 @@ class ToolTip:
             tw.destroy()
 
 
-def create_tooltip(widget, text):
-    tool_tip = ToolTip(widget)
+def create_tooltip(widget, text, locked_status):
+    tool_tip = ToolTip(widget, locked_status)
 
     def motion(event):
         column = widget.identify_column(event.x)
         row = widget.identify_row(event.y)
         if row:
-            status = widget.set(row, "Status")
+            status = tool_tip.locked_status.get(row, False)
             # Check if the mouse cursor is over the column with the lock image
-            if column == "#0" and status == "Locked":
+            if column == "#0" and status:
                 # Get the bounding box of the cell
                 x, y, width, height = widget.bbox(row, column)
                 # Check if the mouse cursor is within the bounding box of the cell
