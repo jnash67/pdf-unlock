@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter import filedialog
+from tkinter import filedialog, simpledialog
 from pygubu.widgets.editabletreeview import EditableTreeview
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from PyPDF2 import PdfReader, PdfWriter
@@ -13,20 +13,38 @@ import traceback
 class PDFPasswordRemoverApp(ttk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        self.pdf_image = None
+        self.lock_image = None
+        self.clear_image = None
+        self.remove_image = None
+
         self.radio_button_frame = None
         self.bottom_buttons_frame = None
         self.top_buttons_frame = None
         self.file_list_editabletreeview = None
-        self.lock_image = None
+
         self.master = master
         self.pack()
         self.create_widgets()
         self.passwords = {}  # Add a dictionary to store the actual passwords
+        self.locked_status = {}  # Add a dictionary to store the locked status of the files
 
     def create_images(self):
         self.lock_image = Image.open("icons8-lock-48.png")  # Replace with the path to your image
-        self.lock_image = self.lock_image.resize((20, 20))  # Resize the image
+        self.lock_image = self.lock_image.resize((15, 15))  # Resize the image
         self.lock_image = ImageTk.PhotoImage(self.lock_image)
+
+        self.pdf_image = Image.open("icons8-pdf-48.png")  # Replace with the path to your image
+        self.pdf_image = self.pdf_image.resize((15, 15))  # Resize the image
+        self.pdf_image = ImageTk.PhotoImage(self.pdf_image)
+
+        self.clear_image = Image.open("icons8-clear-symbol-48.png")  # Replace with the path to your image
+        self.clear_image = self.clear_image.resize((15, 15))  # Resize the image
+        self.clear_image = ImageTk.PhotoImage(self.clear_image)
+
+        self.remove_image = Image.open("icons8-remove-48.png")  # Replace with the path to your image
+        self.remove_image = self.remove_image.resize((15, 15))  # Resize the image
+        self.remove_image = ImageTk.PhotoImage(self.remove_image)
 
     def create_widgets(self):
         self.create_images()
@@ -76,9 +94,9 @@ class PDFPasswordRemoverApp(ttk.Frame):
         # Bind the click event to the on_click function
         # self.file_list.bind("<ButtonRelease-1>", self.show_password_entry)
         #self.file_list.bind("<1>", self.show_password_entry)
-        #self.file_list.bind("<1>", self.on_click)
+        self.file_list_editabletreeview.bind("<1>", self.on_file_list_click)
         # Bind the double-click event to the on_double_click function
-        self.file_list_editabletreeview.bind("<Double-1>", self.on_double_click)
+        self.file_list_editabletreeview.bind("<Double-1>", self.on_file_list_double_click)
         # Bind the <<TreeviewSelect>> event to the update_remove_selected_button_state function
         self.file_list_editabletreeview.bind("<<TreeviewSelect>>", self.update_selected_buttons_state)
         create_tooltip(self.file_list_editabletreeview, "This is a tooltip")
@@ -87,17 +105,17 @@ class PDFPasswordRemoverApp(ttk.Frame):
         self.add_pdf_button = tk.Button(self.top_buttons_frame)
         self.add_pdf_button["text"] = "Add PDFs..."
         self.add_pdf_button["command"] = self.get_pdf_files
-        self.add_pdf_button.pack(side="left", padx=5)  # Add 10 pixels of padding on each side
+        self.add_pdf_button.pack(side="left", padx=5, pady=5)  # Add 10 pixels of padding on each side
 
         self.output_var = tk.StringVar(value="same")
 
         # Move the radio buttons to the radio_button_frame and place them on top of each other
         self.same_folder_radiobutton = tk.Radiobutton(self.radio_button_frame, text="Same folder",
-                                                      variable=self.output_var, value="same")
+                                                      variable=self.output_var, value="same", padx=5)
         self.same_folder_radiobutton.grid(row=0, column=0, sticky='w')  # Place the button in row 0
 
         self.custom_folder_radiobutton = tk.Radiobutton(self.radio_button_frame, text="Custom folder",
-                                                        variable=self.output_var, value="custom")
+                                                        variable=self.output_var, value="custom", padx=5)
         self.custom_folder_radiobutton.grid(row=1, column=0, sticky='w')  # Place the button in row 1
 
         # Create an Entry to display the selected directory and place it to the right of the custom_folder_radiobutton
@@ -110,27 +128,27 @@ class PDFPasswordRemoverApp(ttk.Frame):
         self.select_dir_button = tk.Button(self.radio_button_frame, text="Select directory",
                                            command=self.select_directory)
         self.select_dir_button.grid(row=1, column=2,
-                                    sticky='w')  # Place the button in row 1, to the right of the output_dir_entry
+                                    sticky='w', padx=(7,0))  # Place the button in row 1, to the right of the output_dir_entry
 
         # Move the execute_button to the button_frame
         # Replace tk.Button with ttk.Button for the unlock_selected_button
         self.unlock_selected_button = ttk.Button(self.bottom_buttons_frame, text="Unlock Selected",
                                                  command=self.unlock_pdf, style="RoundedButton.TButton")
         self.unlock_selected_button["state"] = "disabled"  # Disable the button by default
-        self.unlock_selected_button.pack(side="left", padx=5)
+        self.unlock_selected_button.pack(side="left", padx=5, pady=5)
 
         # Replace tk.Button with ttk.Button for the unlock_all_button
         self.unlock_all_button = ttk.Button(self.bottom_buttons_frame, text="Unlock All", command=self.unlock_pdf,
                                             style="RoundedButton.TButton")
-        self.unlock_all_button.pack(side="left", padx=5)
+        self.unlock_all_button.pack(side="left", padx=5, pady=5)
 
         self.remove_selected_button = tk.Button(self.top_buttons_frame, text="Remove Selected",
                                                 command=self.remove_selected)
         self.remove_selected_button["state"] = "disabled"  # Disable the button by default
-        self.remove_selected_button.pack(side="left", padx=5)
+        self.remove_selected_button.pack(side="left", padx=5, pady=5)
 
         self.remove_all_button = tk.Button(self.top_buttons_frame, text="Remove All", command=self.remove_all)
-        self.remove_all_button.pack(side="left", padx=5)
+        self.remove_all_button.pack(side="left", padx=5, pady=5)
 
         # Bind the <<Drop>> event to the Treeview widget
         self.file_list_editabletreeview.dnd_bind('<<Drop>>', self.drop)
@@ -173,14 +191,18 @@ class PDFPasswordRemoverApp(ttk.Frame):
             pdf_reader = PdfReader(pdf_file_path)
             if pdf_reader.is_encrypted:
                 # Add file to the list
-                self.file_list_editabletreeview.insert("", "end", text=str(item_number), image=self.lock_image,
+                item_id = self.file_list_editabletreeview.insert("", "end", text=str(item_number), image=self.lock_image,
                                                        values=(file_name, f"{file_size:.0f} KB", "##", "", "Locked"))
+                # Add the item ID to the locked_status dictionary with the value True
+                self.locked_status[item_id] = True
             else:
                 num_pages = len(pdf_reader.pages)
                 # Add file to the list
-                self.file_list_editabletreeview.insert("", "end", text="  " + str(item_number),
+                item_id = self.file_list_editabletreeview.insert("", "end", text="  " + str(item_number),
                                                        values=(
                                                        file_name, f"{file_size:.0f} KB", num_pages, "", "Unlocked"))
+                # Add the item ID to the locked_status dictionary with the value False
+                self.locked_status[item_id] = False
 
     def remove_selected(self):
         # Get the selected items
@@ -235,17 +257,42 @@ class PDFPasswordRemoverApp(ttk.Frame):
                     # traceback.print_exc()  # Print the details of the exception
                     print("Incorrect password")
 
-    # def on_click(self, event):
-    #     # Get the item ID of the item clicked and the column clicked
-    #     item_id = self.file_list.identify_row(event.y)
-    #     column = self.file_list.identify_column(event.x)
-    #
-    #     # Only make the cell editable if it's in the "Password" column and the PDF is locked
-    #     if column == "#4" and self.file_list.set(item_id, "Status") == "Locked":
-    #         # Start editing the cell
-    #         self.file_list.edit_cell(item_id, column)
+    def on_file_list_click(self, event):
+        # Get the item ID of the item clicked and the column clicked
+        item_id = self.file_list_editabletreeview.identify_row(event.y)
+        column = self.file_list_editabletreeview.identify_column(event.x)
 
-    def on_double_click(self, event):
+        # Only open the password entry dialog if the clicked cell is in the "#0" column and the item is locked
+        if column == "#0" and self.locked_status.get(item_id, False):
+            # Get the password from the passwords dictionary
+            password = self.passwords.get(item_id, "")
+
+            # Open a password entry dialog with the password as the initial value
+            password_dialog = tk.simpledialog._QueryString("Password", "Enter the password:", initialvalue=password,
+                                                           show="*")
+
+            # Get the dimensions of the main window
+            window_width = self.master.winfo_width()
+            window_height = self.master.winfo_height()
+
+            # Get the coordinates of the main window
+            window_x = self.master.winfo_x()
+            window_y = self.master.winfo_y()
+
+            # Calculate the coordinates of the center of the window
+            center_x = window_x + window_width // 2
+            center_y = window_y + window_height // 2
+
+            # Set the position of the dialog
+            password_dialog.geometry(f"+{center_x}+{center_y}")
+            # Show the dialog and get the entered password
+            new_password = password_dialog.go()
+
+            # If the user entered a password, save it in the passwords dictionary
+            if new_password is not None:
+                self.passwords[item_id] = new_password
+
+    def on_file_list_double_click(self, event):
         # Get the item ID of the item clicked and the column clicked
         item_id = self.file_list_editabletreeview.identify_row(event.y)
         column = self.file_list_editabletreeview.identify_column(event.x)
