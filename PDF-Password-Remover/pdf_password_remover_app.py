@@ -2,66 +2,91 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import filedialog, simpledialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 from PIL import Image, ImageTk
 import os
 from tooltip import create_tooltip
 from tooltip_if_locked import create_tooltip_if_locked
-import traceback
 
+
+# import traceback
 
 class PDFPasswordRemoverApp(ttk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
+        # images
+        self.unlock_all_image = None
+        self.unlock_selected_image = None
         self.pdf_image = None
         self.lock_image = None
         self.clear_image = None
         self.remove_image = None
 
+        # frames
         self.radio_button_frame = None
         self.bottom_buttons_frame = None
         self.top_buttons_frame = None
         self.file_list_treeview = None
 
+        # buttons, labels, and entries
+        self.unlock_all_button = None
+        self.unlock_selected_button = None
+        self.remove_all_button = None
+        self.remove_selected_button = None
+        self.add_pdf_button = None
+        self.select_dir_button = None
+        self.new_file_ending_label = None
+        self.new_file_ending_entry = None
+        self.output_dir_entry = None
+        self.custom_folder_radiobutton = None
+        self.same_folder_radiobutton = None
+
         self.master = master
         self.pack()
 
-        # Define the locked_status attribute here
-        self.locked_status = {}
-
-        self.create_widgets()
+        # These must be defined before creating widgets
+        self.output_folder = None  # Stores the selected output folder option
+        self.locked_status = {}  # Add a dictionary to store the locked status of each item
+        self.create_widgets()  # Create the widgets
         self.passwords = {}  # Add a dictionary to store the actual passwords
         self.added_files = set()  # Add a set to store the paths of added files
 
     def create_images(self):
         image_size = 40, 40
-        self.lock_image = Image.open("icons8-lock-48.png")  # Replace with the path to your image
+        image_folder_path = os.path.join(os.path.dirname(__file__), "assets")
+        image_folder_path = os.path.join(image_folder_path, "images")
+
+        image_path = os.path.join(image_folder_path, "icons8-lock-48.png")
+        self.lock_image = Image.open(image_path)
         self.lock_image = self.lock_image.resize((15, 15))  # Resize the image
         self.lock_image = ImageTk.PhotoImage(self.lock_image)
 
-        self.pdf_image = Image.open("icons8-pdf-64.png")  # Replace with the path to your image
+        image_path = os.path.join(image_folder_path, "icons8-pdf-64.png")
+        self.pdf_image = Image.open(image_path)
         self.pdf_image = self.pdf_image.resize(image_size)  # Resize the image
         self.pdf_image = ImageTk.PhotoImage(self.pdf_image)
 
-        self.clear_image = Image.open("icons8-remove-blue-circle-48.png")  # Replace with the path to your image
+        image_path = os.path.join(image_folder_path, "icons8-remove-blue-circle-48.png")
+        self.clear_image = Image.open(image_path)  # Replace with the path to your image
         self.clear_image = self.clear_image.resize(image_size)  # Resize the image
         self.clear_image = ImageTk.PhotoImage(self.clear_image)
 
-        self.remove_image = Image.open("icons8-remove-blue-trashcan-48.png")  # Replace with the path to your image
+        image_path = os.path.join(image_folder_path, "icons8-remove-blue-trashcan-48.png")
+        self.remove_image = Image.open(image_path)  # Replace with the path to your image
         self.remove_image = self.remove_image.resize(image_size)  # Resize the image
         self.remove_image = ImageTk.PhotoImage(self.remove_image)
 
-        self.unlock_selected_image = Image.open("icons8-unlock-64.png")
+        image_path = os.path.join(image_folder_path, "icons8-unlock-64.png")
+        self.unlock_selected_image = Image.open(image_path)
         self.unlock_selected_image = self.unlock_selected_image.resize(image_size)  # Resize the image
         self.unlock_selected_image = ImageTk.PhotoImage(self.unlock_selected_image)
 
-        self.unlock_all_image = Image.open("icons8-grand-master-key-48.png")
+        image_path = os.path.join(image_folder_path, "icons8-grand-master-key-48.png")
+        self.unlock_all_image = Image.open(image_path)
         self.unlock_all_image = self.unlock_all_image.resize(image_size)  # Resize the image
         self.unlock_all_image = ImageTk.PhotoImage(self.unlock_all_image)
 
     def create_top_buttons(self):
-
-        # Create a new frame for the buttons
         self.top_buttons_frame = tk.Frame(self)
         self.top_buttons_frame.grid(row=0, column=0, sticky='ew')  # Place the frame in row 0
 
@@ -81,11 +106,9 @@ class PDFPasswordRemoverApp(ttk.Frame):
         self.remove_all_button.pack(side="left", padx=5, pady=5)
 
     def create_bottom_buttons(self):
-        # Create a new frame for the unlock buttons
         self.bottom_buttons_frame = tk.Frame(self)
         self.bottom_buttons_frame.grid(row=2, column=0, sticky='e')  # Place the frame in row 2, aligned to the right
 
-        # Replace tk.Button with ttk.Button for the unlock_selected_button
         self.unlock_selected_button = ttk.Button(self.bottom_buttons_frame, text="Unlock \nSelected ",
                                                  image=self.unlock_selected_image,
                                                  compound=tk.LEFT,
@@ -101,21 +124,20 @@ class PDFPasswordRemoverApp(ttk.Frame):
                                             )
         self.unlock_all_button.pack(side="left", padx=5, pady=5)
 
-
     def create_radio_buttons(self):
         # Create a new frame for the radio buttons
         self.radio_button_frame = tk.Frame(self)
         self.radio_button_frame.grid(row=2, column=0, sticky='w')  # Place the frame in row 2, aligned to the left
 
-        self.output_var = tk.StringVar(value="same")
+        self.output_folder = tk.StringVar(value="same")
 
         # Move the radio buttons to the radio_button_frame and place them on top of each other
         self.same_folder_radiobutton = tk.Radiobutton(self.radio_button_frame, text="Same folder",
-                                                      variable=self.output_var, value="same", padx=5)
+                                                      variable=self.output_folder, value="same", padx=5)
         self.same_folder_radiobutton.grid(row=0, column=0, sticky='w')  # Place the button in row 0
 
         self.custom_folder_radiobutton = tk.Radiobutton(self.radio_button_frame, text="Custom folder",
-                                                        variable=self.output_var, value="custom", padx=5)
+                                                        variable=self.output_folder, value="custom", padx=5)
         self.custom_folder_radiobutton.grid(row=1, column=0, sticky='w')  # Place the button in row 1
 
         # Create an Entry to display the selected directory and place it to the right of the custom_folder_radiobutton
@@ -125,8 +147,8 @@ class PDFPasswordRemoverApp(ttk.Frame):
         self.output_dir_entry.insert(0, os.getcwd())  # Set the initial value to the current directory
 
         # Create a Button that opens a directory selection dialog and place it to the right of the output_dir_entry
-        self.select_dir_button = tk.Button(self.radio_button_frame, text="Select directory",
-                                           command=self.select_directory)
+        self.select_dir_button = ttk.Button(self.radio_button_frame, text="Select directory",
+                                            command=self.select_directory)
         self.select_dir_button.grid(row=1, column=2,
                                     sticky='w',
                                     padx=(7, 0))  # Place the button in row 1, to the right of the output_dir_entry
@@ -135,7 +157,8 @@ class PDFPasswordRemoverApp(ttk.Frame):
         create_tooltip(self.new_file_ending_label, "If blank then old file will be overwritten")
 
         self.new_file_ending_entry = tk.Entry(self.radio_button_frame)
-        self.new_file_ending_entry.grid(row=2, column=1, sticky='w', pady=(0, 5))  # Place the Entry in row 2, to the right of the custom_folder_radiobutton
+        self.new_file_ending_entry.grid(row=2, column=1, sticky='w', pady=(
+            0, 5))  # Place the Entry in row 2, to the right of the custom_folder_radiobutton
         self.new_file_ending_entry.insert(0, "_NoPW")  # Set the initial value to "_NoPW"
         create_tooltip(self.new_file_ending_entry, "If blank then old file will be overwritten")
 
@@ -170,7 +193,6 @@ class PDFPasswordRemoverApp(ttk.Frame):
         # Bind the <<Drop>> event to the Treeview widget
         self.file_list_treeview.drop_target_register(DND_FILES)
         self.file_list_treeview.dnd_bind('<<Drop>>', self.drop)
-
 
     def create_widgets(self):
         self.create_images()
@@ -286,7 +308,7 @@ class PDFPasswordRemoverApp(ttk.Frame):
                     new_file_ending = self.new_file_ending_entry.get()
                     new_file_name = file_name + new_file_ending + file_extension if new_file_ending else file_name + file_extension
 
-                    if self.output_var.get() == "same":
+                    if self.output_folder.get() == "same":
                         new_file_path = os.path.join(dir_name, new_file_name)
                     else:
                         new_file_path = os.path.join(self.output_dir_entry.get(), new_file_name)
@@ -340,15 +362,9 @@ class PDFPasswordRemoverApp(ttk.Frame):
     def select_directory(self):
         # Open a directory selection dialog and set the selected directory in the Entry
         selected_directory = filedialog.askdirectory()
-        self.output_dir_entry.delete(0, "end")  # Delete the current value
-        self.output_dir_entry.insert(0, selected_directory)  # Insert the selected directory
-
-
-# Bind the click event to the on_click function
-root = TkinterDnD.Tk()
-root.title("PDF Password Remover")
-root.geometry("750x450")
-root.minsize(700, 200)  # Set the minimum window size to 500x300
-app = PDFPasswordRemoverApp(master=root)
-app.pack(fill='both', expand=True)  # Make the app expandable
-app.mainloop()
+        # Only update the Entry if a directory was selected
+        if selected_directory:
+            # Normalize the path to be system-appropriate
+            selected_directory = os.path.normpath(selected_directory)
+            self.output_dir_entry.delete(0, "end")  # Delete the current value
+            self.output_dir_entry.insert(0, selected_directory)  # Insert the selected directory
