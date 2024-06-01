@@ -11,42 +11,44 @@ class UnlockPDFAppUI:
         toplevel1.configure(height=200, width=200)
         self.frame_main = ttk.Frame(toplevel1, name="frame_main")
         self.frame_main.configure(height=200, padding=5, width=200)
-        editabletreeview1 = EditableTreeview(self.frame_main)
-        editabletreeview1.configure(selectmode="extended")
+
+        self.editabletreeview1 = EditableTreeview(self.frame_main)
+        self.editabletreeview1.configure(selectmode="extended")
         editabletreeview1_cols = ['one', 'two', 'three', 'four']
         editabletreeview1_dcols = ['one', 'two', 'three', 'four']
-        editabletreeview1.configure(
+        self.editabletreeview1.configure(
             columns=editabletreeview1_cols,
             displaycolumns=editabletreeview1_dcols)
-        editabletreeview1.column(
+        self.editabletreeview1.column(
             "one",
             anchor="w",
             stretch=True,
             width=200,
             minwidth=20)
-        editabletreeview1.column(
+        self.editabletreeview1.column(
             "two",
             anchor="w",
             stretch=True,
             width=200,
             minwidth=20)
-        editabletreeview1.column(
+        self.editabletreeview1.column(
             "three",
             anchor="w",
             stretch=True,
             width=200,
             minwidth=20)
-        editabletreeview1.column(
+        self.editabletreeview1.column(
             "four",
             anchor="w",
             stretch=True,
             width=200,
             minwidth=20)
-        editabletreeview1.heading("one", anchor="w", text='File Name')
-        editabletreeview1.heading("two", anchor="w", text='Size')
-        editabletreeview1.heading("three", anchor="w", text='Pages')
-        editabletreeview1.heading("four", anchor="w", text='Password')
-        editabletreeview1.grid(column=1, row=2, sticky="nsew")
+        self.editabletreeview1.heading("one", anchor="w", text='File Name')
+        self.editabletreeview1.heading("two", anchor="w", text='Size')
+        self.editabletreeview1.heading("three", anchor="w", text='Pages')
+        self.editabletreeview1.heading("four", anchor="w", text='Password')
+        self.editabletreeview1.grid(column=1, row=2, sticky="nsew")
+
         self.frame_buttons = ttk.Frame(self.frame_main, name="frame_buttons")
         self.frame_buttons.configure(
             height=50, padding=20, relief="raised", width=200)
@@ -89,4 +91,7 @@ class UnlockPDFAppUI:
 
 if __name__ == "__main__":
     app = UnlockPDFAppUI()
+    app.editabletreeview1.column('#0', width=50)
+    app.editabletreeview1.heading("#0", text="Item")
+    app.editabletreeview1.insert('', 'end', values=('file1', '100', '10', 'password'))
     app.run()

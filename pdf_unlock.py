@@ -3,8 +3,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import pdf_unlockui as baseui
 
-
-class unlock(baseui.unlockUI):
+class unlock(baseui.UnlockPDFAppUI):
     def __init__(self, master=None):
         super().__init__(master)
 
