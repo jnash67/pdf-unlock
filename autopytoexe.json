@@ -1,0 +1,93 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/__main__.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": true
+  },
+  {
+   "optionDest": "console",
+   "value": true
+  },
+  {
+   "optionDest": "icon_file",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/favicon.ico"
+  },
+  {
+   "optionDest": "name",
+   "value": "PDFPasswordRemover"
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "hide_console",
+   "value": "minimize-late"
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/assets/images/icons8-grand-master-key-48.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/assets/images/icons8-lock-48.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/assets/images/icons8-pdf-64.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/assets/images/icons8-remove-blue-circle-48.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/assets/images/icons8-remove-blue-trashcan-48.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "G:/Dropbox/PycharmProjects/PDF Unlock/PDF-Password-Remover/assets/images/icons8-unlock-64.png;."
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}
