@@ -1,15 +1,29 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter import filedialog, simpledialog
+# tkinterdnd2 was giving problems to pyinstaller so trying other libraries
+# tkdragfiles only worked on windows and was giving issues
 from tkinterdnd2 import DND_FILES, TkinterDnD
+from tkinter import filedialog, simpledialog
 from pypdf import PdfReader, PdfWriter
 from PIL import Image, ImageTk
-import os
 from tooltip import create_tooltip
 from tooltip_if_locked import create_tooltip_if_locked
+import sys
+import os
 
 
-# import traceback
+# required for pyinstaller as per:
+#   https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
+# and https://www.youtube.com/watch?v=p3tSLatmGvU&t=135s
+def resource_path(relative_path):
+    try:
+        # For some machines may need to be sys._MEIPASS2 - https://www.youtube.com/watch?v=p3tSLatmGvU&t=135s
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 class PDFPasswordRemoverApp(ttk.Frame):
     def __init__(self, master=None):
@@ -52,37 +66,34 @@ class PDFPasswordRemoverApp(ttk.Frame):
         self.added_files = set()  # Add a set to store the paths of added files
 
     def create_images(self):
+        current_directory = os.getcwd()
+        if 'PDF-Password-Remover' not in current_directory:
+            os.chdir("PDF-Password-Remover")
         image_size = 40, 40
-        image_folder_path = os.path.join(os.path.dirname(__file__), "assets")
-        image_folder_path = os.path.join(image_folder_path, "images")
 
-        image_path = os.path.join(image_folder_path, "icons8-lock-48.png")
-        self.lock_image = Image.open(image_path)
+        self.lock_image = Image.open(resource_path("icons8-lock-48.png"))
         self.lock_image = self.lock_image.resize((15, 15))  # Resize the image
         self.lock_image = ImageTk.PhotoImage(self.lock_image)
 
-        image_path = os.path.join(image_folder_path, "icons8-pdf-64.png")
-        self.pdf_image = Image.open(image_path)
+        self.pdf_image = Image.open(resource_path("icons8-pdf-64.png"))
         self.pdf_image = self.pdf_image.resize(image_size)  # Resize the image
         self.pdf_image = ImageTk.PhotoImage(self.pdf_image)
 
-        image_path = os.path.join(image_folder_path, "icons8-remove-blue-circle-48.png")
-        self.clear_image = Image.open(image_path)  # Replace with the path to your image
+        self.clear_image = Image.open(
+            resource_path("icons8-remove-blue-circle-48.png"))  # Replace with the path to your image
         self.clear_image = self.clear_image.resize(image_size)  # Resize the image
         self.clear_image = ImageTk.PhotoImage(self.clear_image)
 
-        image_path = os.path.join(image_folder_path, "icons8-remove-blue-trashcan-48.png")
-        self.remove_image = Image.open(image_path)  # Replace with the path to your image
+        self.remove_image = Image.open(
+            resource_path("icons8-remove-blue-trashcan-48.png"))  # Replace with the path to your image
         self.remove_image = self.remove_image.resize(image_size)  # Resize the image
         self.remove_image = ImageTk.PhotoImage(self.remove_image)
 
-        image_path = os.path.join(image_folder_path, "icons8-unlock-64.png")
-        self.unlock_selected_image = Image.open(image_path)
+        self.unlock_selected_image = Image.open(resource_path("icons8-unlock-64.png"))
         self.unlock_selected_image = self.unlock_selected_image.resize(image_size)  # Resize the image
         self.unlock_selected_image = ImageTk.PhotoImage(self.unlock_selected_image)
 
-        image_path = os.path.join(image_folder_path, "icons8-grand-master-key-48.png")
-        self.unlock_all_image = Image.open(image_path)
+        self.unlock_all_image = Image.open(resource_path("icons8-grand-master-key-48.png"))
         self.unlock_all_image = self.unlock_all_image.resize(image_size)  # Resize the image
         self.unlock_all_image = ImageTk.PhotoImage(self.unlock_all_image)
 
@@ -105,7 +116,7 @@ class PDFPasswordRemoverApp(ttk.Frame):
                                            compound=tk.LEFT, command=self.remove_all)
         self.remove_all_button.pack(side="left", padx=5, pady=5)
 
-    def create_bottom_buttons(self):
+    def create_bottom_right_buttons(self):
         self.bottom_buttons_frame = tk.Frame(self)
         self.bottom_buttons_frame.grid(row=2, column=0, sticky='e')  # Place the frame in row 2, aligned to the right
 
@@ -124,56 +135,54 @@ class PDFPasswordRemoverApp(ttk.Frame):
                                             )
         self.unlock_all_button.pack(side="left", padx=5, pady=5)
 
-    def create_radio_buttons(self):
-        # Create a new frame for the radio buttons
+    def create_bottom_left_ui(self):
         self.radio_button_frame = tk.Frame(self)
-        self.radio_button_frame.grid(row=2, column=0, sticky='w')  # Place the frame in row 2, aligned to the left
+        self.radio_button_frame.grid(row=2, column=0, sticky='w')
 
         self.output_folder = tk.StringVar(value="same")
 
-        # Move the radio buttons to the radio_button_frame and place them on top of each other
         self.same_folder_radiobutton = tk.Radiobutton(self.radio_button_frame, text="Same folder",
                                                       variable=self.output_folder, value="same", padx=5)
-        self.same_folder_radiobutton.grid(row=0, column=0, sticky='w')  # Place the button in row 0
+        self.same_folder_radiobutton.grid(row=0, column=0, sticky='w')
 
         self.custom_folder_radiobutton = tk.Radiobutton(self.radio_button_frame, text="Custom folder",
                                                         variable=self.output_folder, value="custom", padx=5)
-        self.custom_folder_radiobutton.grid(row=1, column=0, sticky='w')  # Place the button in row 1
+        self.custom_folder_radiobutton.grid(row=1, column=0, sticky='w')
 
-        # Create an Entry to display the selected directory and place it to the right of the custom_folder_radiobutton
         self.output_dir_entry = tk.Entry(self.radio_button_frame, width=30)
-        self.output_dir_entry.grid(row=1, column=1,
-                                   sticky='w')  # Place the Entry in row 1, to the right of the custom_folder_radiobutton
-        self.output_dir_entry.insert(0, os.getcwd())  # Set the initial value to the current directory
+        self.output_dir_entry.grid(row=1, column=1, sticky='w')
+        self.output_dir_entry.insert(0, os.getcwd())
 
-        # Create a Button that opens a directory selection dialog and place it to the right of the output_dir_entry
         self.select_dir_button = ttk.Button(self.radio_button_frame, text="Select directory",
                                             command=self.select_directory)
-        self.select_dir_button.grid(row=1, column=2,
-                                    sticky='w',
-                                    padx=(7, 0))  # Place the button in row 1, to the right of the output_dir_entry
+        self.select_dir_button.grid(row=1, column=2, sticky='w', padx=(7, 0))
+
         self.new_file_ending_label = tk.Label(self.radio_button_frame, text="New Filename Ending:")
         self.new_file_ending_label.grid(row=2, column=0, sticky='w', padx=(5, 5), pady=(0, 5))
         create_tooltip(self.new_file_ending_label, "If blank then old file will be overwritten")
 
         self.new_file_ending_entry = tk.Entry(self.radio_button_frame)
-        self.new_file_ending_entry.grid(row=2, column=1, sticky='w', pady=(
-            0, 5))  # Place the Entry in row 2, to the right of the custom_folder_radiobutton
-        self.new_file_ending_entry.insert(0, "_NoPW")  # Set the initial value to "_NoPW"
+        self.new_file_ending_entry.grid(row=2, column=1, sticky='w', pady=(0, 5))
+        self.new_file_ending_entry.insert(0, "_NoPW")
         create_tooltip(self.new_file_ending_entry, "If blank then old file will be overwritten")
+
+        # Configure the grid to expand
+        self.radio_button_frame.grid_columnconfigure(1, weight=1)
 
     def create_treeview(self):
         # Create a new Treeview for the file list
         self.file_list_treeview = ttk.Treeview(self)
-        self.file_list_treeview["columns"] = ("File Name", "Size", "Pages", "Password", "Status")
-        self.file_list_treeview.column("#0", width=60, anchor="w")
+        self.file_list_treeview["columns"] = ("File Name", "Path", "Size", "Pages", "Password", "Status")
+        self.file_list_treeview.column("#0", width=40, anchor="w")
         self.file_list_treeview.column("File Name", width=200, anchor="w")
-        self.file_list_treeview.column("Size", width=100, anchor="w")
-        self.file_list_treeview.column("Pages", width=100, anchor="w")
-        self.file_list_treeview.column("Password", width=100, anchor="w")
+        self.file_list_treeview.column("Path", width=200, anchor="w")
+        self.file_list_treeview.column("Size", width=40, anchor="w")
+        self.file_list_treeview.column("Pages", width=40, anchor="w")
+        self.file_list_treeview.column("Password", width=60, anchor="w")
         self.file_list_treeview.column("Status", width=100, anchor="w")
         self.file_list_treeview.heading("#0", text=" Item", anchor="w")
         self.file_list_treeview.heading("File Name", text=" File name", anchor="w")
+        self.file_list_treeview.heading("Path", text=" Path", anchor="w")
         self.file_list_treeview.heading("Size", text=" Size", anchor="w")
         self.file_list_treeview.heading("Pages", text=" Pages", anchor="w")
         self.file_list_treeview.heading("Password", text=" Password", anchor="w")
@@ -190,24 +199,43 @@ class PDFPasswordRemoverApp(ttk.Frame):
         self.file_list_treeview.bind("<1>", self.on_file_list_click)
         self.file_list_treeview.bind("<<TreeviewSelect>>", self.update_selected_buttons_state)
         create_tooltip_if_locked(self.file_list_treeview, "Click on lock to enter password", self.locked_status)
+
+        # Wrap the Treeview widget with DnDWrapper
+        # dnd_wrapper = DnDWrapper(self.file_list_treeview)
+        # dnd_wrapper.dnd_bind('<<Drop>>', self.drop, add='+')
+
         # Bind the <<Drop>> event to the Treeview widget
         self.file_list_treeview.drop_target_register(DND_FILES)
         self.file_list_treeview.dnd_bind('<<Drop>>', self.drop)
+        #start_dragfiles_event(self.master, self.drop)
+        #self.file_list_treeview.dnd_bind('<<Drop>>', self.drop)
 
     def create_widgets(self):
         self.create_images()
         self.create_top_buttons()
-        self.create_bottom_buttons()
-        self.create_radio_buttons()
+        self.create_bottom_right_buttons()
+        self.create_bottom_left_ui()
         self.create_treeview()
 
+    # def drop(self, event):
+    #     print("Drop event triggered")
+    #     print("Dropped file path:", event.data)
+    #     # Get the path of the dropped file
+    #     dropped_file_path = event.data.strip('{}')  # Strip curly braces if present
+    #     if os.path.isfile(dropped_file_path) and dropped_file_path.endswith('.pdf'):
+    #         self.add_file_to_list(dropped_file_path)
+
     def drop(self, event):
-        print("Drop event triggered")
-        print("Dropped file path:", event.data)
-        # Get the path of the dropped file
-        dropped_file_path = event.data.strip('{}')  # Strip curly braces if present
-        if os.path.isfile(dropped_file_path) and dropped_file_path.endswith('.pdf'):
-            self.add_file_to_list(dropped_file_path)
+        #print("Drop event triggered")
+        #print("Dropped file path:", event.data)
+        # The event data contains a list of files separated by spaces.  If the filename has a space then it will
+        # be surrounded by curly brackets.
+        files = root.tk.splitlist(event.data)
+        for filename in files:
+            filename = filename.strip('{}')  # Strip curly braces if present
+            if os.path.isfile(filename) and filename.endswith('.pdf'):
+                self.add_file_to_list(filename)
+
 
     def get_pdf_files(self):
         pdf_file_paths = filedialog.askopenfilenames(filetypes=[("PDF files", "*.pdf")])
@@ -239,7 +267,7 @@ class PDFPasswordRemoverApp(ttk.Frame):
             item_id = self.file_list_treeview.insert("", "end", text=str(item_number),
                                                      image=self.lock_image,
                                                      values=(
-                                                         file_name, f"{file_size:.0f} KB", "##", "", "Locked"))
+                                                         file_name, file_path, f"{file_size:.0f} KB", "##", "", "Locked"))
             # Add the item ID to the locked_status dictionary with the value True
             self.locked_status[item_id] = True
         else:
@@ -247,7 +275,7 @@ class PDFPasswordRemoverApp(ttk.Frame):
             # Add file to the list
             item_id = self.file_list_treeview.insert("", "end", text="  " + str(item_number),
                                                      values=(
-                                                         file_name, f"{file_size:.0f} KB", num_pages, "",
+                                                         file_name, file_path, f"{file_size:.0f} KB", num_pages, "",
                                                          "Unlocked"))
             # Add the item ID to the locked_status dictionary with the value False
             self.locked_status[item_id] = False
@@ -290,7 +318,8 @@ class PDFPasswordRemoverApp(ttk.Frame):
     def unlock_pdf(self, items):
         for item in items:
             if self.locked_status.get(item, False):
-                pdf_file_path = self.file_list_treeview.item(item)["values"][0]
+                # [0] is file name, [1] is file path
+                pdf_file_path = self.file_list_treeview.item(item)["values"][1]
                 password = self.passwords.get(item, "")
                 pdf_reader = PdfReader(pdf_file_path)
                 try:
@@ -316,6 +345,9 @@ class PDFPasswordRemoverApp(ttk.Frame):
                     with open(new_file_path, "wb") as output_pdf:
                         pdf_writer.write(output_pdf)
 
+                    self.file_list_treeview.set(item, "File Name", new_file_name)
+                    self.file_list_treeview.set(item, "Path", new_file_path)
+                    self.file_list_treeview.set(item, "Pages", len(pdf_reader.pages))
                     self.file_list_treeview.set(item, "Password", "")
                     self.file_list_treeview.set(item, "Status", "Unlocked")
                     self.file_list_treeview.item(item, image="")
@@ -368,3 +400,4 @@ class PDFPasswordRemoverApp(ttk.Frame):
             selected_directory = os.path.normpath(selected_directory)
             self.output_dir_entry.delete(0, "end")  # Delete the current value
             self.output_dir_entry.insert(0, selected_directory)  # Insert the selected directory
+

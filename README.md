@@ -16,5 +16,16 @@ There is an option for you to specify a custom output folder.
 To run this project simply clone the repository, run `pip install -r requirements.txt` and then
 run `python PDF-Password-Remover`.
 
+To create the executable with pyinstaller, be sure you're in the PDF-Password-Remover project directory
+(i.e. from the main project directory `cd PDF-Password-Remover`).
+Then run:
+`pyinstaller --noconfirm --onefile --windowed --noconsole --icon "favicon.ico" 
+--name "PDF-Password-Remover" --clean --additional-hooks-dir "." --add-data ".;."  ./pdf_password_remover.py`
+
+Figuring out the right flags in the right format for pyinstaller was crazy difficult. These resources were useful:
+https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
+https://www.youtube.com/watch?v=p3tSLatmGvU&t=135s
+https://github.com/pmgagne/tkinterdnd2/blob/master/hook-tkinterdnd2.py
+
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.

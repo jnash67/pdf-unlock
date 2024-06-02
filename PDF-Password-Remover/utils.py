@@ -14,3 +14,9 @@ def load_pdfs_from_default_dir(self):
         if file_name.endswith('.pdf'):
             file_path = os.path.join(default_dir, file_name)
             self.add_file_to_list(file_path)
+
+
+def print_column_widths(self):
+    for col in self.file_list_treeview["columns"]:
+        width = self.file_list_treeview.column(col)["width"]
+        print(f"Column '{col}' width: {width}")
