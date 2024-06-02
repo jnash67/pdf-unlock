@@ -230,7 +230,7 @@ class PDFPasswordRemoverApp(ttk.Frame):
         #print("Dropped file path:", event.data)
         # The event data contains a list of files separated by spaces.  If the filename has a space then it will
         # be surrounded by curly brackets.
-        files = root.tk.splitlist(event.data)
+        files = self.master.tk.splitlist(event.data)
         for filename in files:
             filename = filename.strip('{}')  # Strip curly braces if present
             if os.path.isfile(filename) and filename.endswith('.pdf'):
