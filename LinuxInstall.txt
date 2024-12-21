@@ -70,3 +70,26 @@ pyinstaller --noconfirm --onefile \
 
 cd dist
 ./PDF-Password-Remover 
+
+To install in the system (change user 'backup_user' to whatever the user actually is):
+
+cat > ~/.local/share/applications/PDF-Password-Remover.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PDF Password Remover
+Comment=Remove passwords from PDF files
+Exec=bash -c "cd /home/backup_user/pdf-unlock/PDF-Password-Remover/dist && ./PDF-Password-Remover"
+Icon=/home/backup_user/pdf-unlock/PDF-Password-Remover/favicon.ico
+Terminal=false
+Categories=Utility;
+EOF
+
+chmod +x /home/backup_user/pdf-unlock/PDF-Password-Remover/dist/PDF-Password-Remover
+chmod +x ~/.local/share/applications/PDF-Password-Remover.desktop
+update-desktop-database ~/.local/share/applications
+cd /home/backup_user/pdf-unlock/PDF-Password-Remover
+cp icons8* favicon.ico dist/
+
+
+
