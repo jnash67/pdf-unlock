@@ -1,5 +1,5 @@
-# PyPDF2 was merged back into pypdf
-pypdf~=4.2.0
 # tkinterdnd2-universal is only if you want to release also on Apple Silicon Macs
 tkinterdnd2~=0.3.0
 pillow~=10.3.0
+# switched from pypdf~=4.2.0 to PyMuPDF aka fritz
+PyMuPDF~=1.24.0
