@@ -7,6 +7,35 @@ __pycache__/
 env/
 venv/
 ENV/
+.env/
+.venv/
+
+# cx_Freeze build outputs
+build/
+dist/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+
+# Nuitka compilation outputs
+*.build/
+*.dist/
+*.onefile-build/
+*.exe
+*.bin
+*.app
+*.run
+*_compiled.*
+*.pyi
+*.o
+*.obj
+*.out
+*.dbg.c
+*.dbg.h
+.nuitka_battery_updated
+.nuitka_python_version
 
 # PyInstaller
 *.spec
@@ -23,4 +52,9 @@ build/
 .idea/
 
 # MacOS
-.DS_Store
+.DS_Storedfd
+
+# Editor backups and temporary files
+*~
+.*.swp
+.*.swo
